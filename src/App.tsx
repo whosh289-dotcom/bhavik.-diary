@@ -144,11 +144,26 @@ export default function App() {
 
     setTimeout(() => {
       setStage('video');
-      if (videoRef.current) {
-        videoRef.current.play().catch(() => {});
-      }
     }, 14000);
   };
+
+  // Play video when stage changes to 'video'
+  useEffect(() => {
+    if (stage === 'video' && videoRef.current) {
+      const playVideo = async () => {
+        try {
+          await videoRef.current?.play();
+        } catch (err) {
+          console.error("Video play failed, trying muted:", err);
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            videoRef.current.play().catch(e => console.error("Muted play failed too:", e));
+          }
+        }
+      };
+      playVideo();
+    }
+  }, [stage]);
 
   // The FOOLPROOF GESTURE TRAP
   useEffect(() => {
@@ -349,15 +364,18 @@ export default function App() {
       </AnimatePresence>
 
       <div 
-        className={`fixed inset-0 bg-black z-10 transition-opacity duration-1000 ${stage === 'video' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-black z-10 transition-opacity duration-1000 flex items-center justify-center ${stage === 'video' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        style={{ height: '100dvh' }}
       >
         <video
           ref={videoRef}
-          src="https://github.com/ShatteredDisk/rickroll/raw/main/rickroll.mp4"
-          className="w-full h-full object-cover"
+          src="https://ia801602.us.archive.org/11/items/Rick_Astley_Never_Gonna_Give_You_Up/Rick_Astley_Never_Gonna_Give_You_Up.mp4"
+          className="w-full h-full object-contain md:object-cover"
           playsInline
           loop
           preload="auto"
+          autoPlay
+          onError={(e) => console.error("Video element error:", e)}
         />
         
         {/* Prank UI Overlay */}
