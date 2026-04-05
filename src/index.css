@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-granny: "Creepster", system-ui;
+  --font-jolly: "Fredoka", system-ui;
+}

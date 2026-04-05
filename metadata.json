@@ -1,0 +1,5 @@
+{
+  "name": "Bhavik's Diary",
+  "description": "Bhavik's personal diary.",
+  "requestFramePermissions": ["fullscreen", "pointer-lock"]
+}
