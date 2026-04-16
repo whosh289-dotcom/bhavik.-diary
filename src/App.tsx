@@ -10,6 +10,7 @@ import { Lock } from 'lucide-react';
 export default function App() {
   const [stage, setStage] = useState<'start' | 'loading' | 'text1' | 'text2' | 'video' | 'escaped'>('start');
   const [isTrapped, setIsTrapped] = useState(false);
+  const [showResistanceText, setShowResistanceText] = useState(false);
   const [mouseY, setMouseY] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
@@ -20,6 +21,12 @@ export default function App() {
     scary?: HTMLAudioElement;
     jolly?: HTMLAudioElement;
   }>({});
+
+  const playSound = (url: string, volume = 0.5) => {
+    const audio = new Audio(url);
+    audio.volume = volume;
+    audio.play().catch(() => {});
+  };
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -42,43 +49,39 @@ export default function App() {
   };
 
   const trapUser = () => {
-    const requestLock = () => {
-      try {
-        if (document.body.requestPointerLock) {
-          const promise = document.body.requestPointerLock() as any;
-          if (promise && typeof promise.catch === 'function') {
-            promise.catch(() => {});
-          }
-        }
-      } catch (e) {
-        // Silent fail if browser blocks it
-      }
+    // Request pointer lock and fullscreen directly
+    const element = document.documentElement;
+    
+    if (document.body.requestPointerLock) {
+      document.body.requestPointerLock();
+    }
 
-      try {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        }
-      } catch (e) {
-        // Silent fail
-      }
-    };
+    const requestFS = element.requestFullscreen || 
+                      (element as any).webkitRequestFullscreen || 
+                      (element as any).mozRequestFullScreen || 
+                      (element as any).msRequestFullscreen;
 
-    requestLock();
+    if (requestFS) {
+      requestFS.call(element).catch(() => {});
+    }
+
     setIsTrapped(true);
 
-    // Escape hatch after 20 seconds
+    // Escape hatch after 60 seconds
     setTimeout(() => {
       releaseTrap();
-    }, 20000);
+    }, 60000);
   };
 
   const handleEscape = () => {
+    playSound('https://www.soundjay.com/human/sounds/laughter-3.mp3', 0.4);
     releaseTrap();
     setStage('escaped');
   };
 
   const handlePauseAttempt = () => {
-    if (passwordInput === '////-////') {
+    if (passwordInput === '3105') {
+      playSound('https://www.soundjay.com/buttons/sounds/button-10.mp3', 0.5);
       if (videoRef.current) {
         if (videoRef.current.paused) {
           videoRef.current.play();
@@ -89,6 +92,7 @@ export default function App() {
       setShowPasswordPrompt(false);
       setPasswordInput('');
     } else {
+      playSound('https://www.soundjay.com/communication/sounds/access-denied-01.mp3', 0.5);
       // Wrong password - maybe a little shake or just clear it
       setPasswordInput('');
     }
@@ -96,6 +100,7 @@ export default function App() {
 
   const startSequence = () => {
     trapUser();
+    playSound('https://www.soundjay.com/buttons/sounds/button-3.mp3', 0.6);
     setStage('loading');
     
     // Initialize audio
@@ -118,6 +123,7 @@ export default function App() {
     logMessages.forEach((msg, i) => {
       setTimeout(() => {
         setLogs(prev => [...prev, msg].slice(-5));
+        playSound('https://www.soundjay.com/communication/sounds/beep-07.mp3', 0.1);
       }, i * 400);
     });
 
@@ -175,21 +181,37 @@ export default function App() {
     if (!isTrapped) return;
 
     const handleInteraction = () => {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
+      const element = document.documentElement;
+      const requestFS = element.requestFullscreen || 
+                        (element as any).webkitRequestFullscreen || 
+                        (element as any).mozRequestFullScreen || 
+                        (element as any).msRequestFullscreen;
+
+      if (!document.fullscreenElement && requestFS) {
+        requestFS.call(element).catch(() => {});
       }
       if (!document.pointerLockElement && document.body.requestPointerLock) {
         document.body.requestPointerLock();
       }
     };
 
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isTrapped) {
+        setShowResistanceText(true);
+        // Keep text for a while
+        setTimeout(() => setShowResistanceText(false), 5000);
+      }
+    };
+
     document.addEventListener('click', handleInteraction);
     document.addEventListener('keydown', handleInteraction);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('click', handleInteraction);
       document.removeEventListener('keydown', handleInteraction);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [isTrapped]);
 
@@ -228,6 +250,30 @@ export default function App() {
       )}
 
       <AnimatePresence mode="wait">
+        {showResistanceText && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000000] flex flex-col items-center justify-center bg-black/95 pointer-events-auto"
+          >
+            <h2 className="text-white font-granny text-3xl md:text-5xl text-center px-4 uppercase tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-8">
+              The more you resist, the more you fall in
+            </h2>
+            <button
+              onClick={() => {
+                setShowResistanceText(false);
+                if (document.documentElement.requestFullscreen) {
+                  document.documentElement.requestFullscreen().catch(() => {});
+                }
+              }}
+              className="px-8 py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors uppercase tracking-widest text-sm"
+            >
+              Accept Fate
+            </button>
+          </motion.div>
+        )}
+
         {stage === 'start' && (
           <motion.div
             key="start"
@@ -410,7 +456,7 @@ export default function App() {
                 onKeyDown={(e) => e.key === 'Enter' && handlePauseAttempt()}
                 autoFocus
                 className="w-full bg-black border border-white/20 rounded p-2 text-white text-center font-mono mb-4 focus:border-[#cd3232] outline-none"
-                placeholder="****-****"
+                placeholder="****"
               />
               <div className="flex gap-2">
                 <button
