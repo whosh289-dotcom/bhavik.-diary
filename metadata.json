@@ -1,5 +1,5 @@
 {
-  "name": "Bhavik's Diary",
-  "description": "Bhavik's personal diary.",
+  "name": "Keys Cafe",
+  "description": "My only one keyboard in the world - Customise and style your own custom keys.",
   "requestFramePermissions": ["fullscreen", "pointer-lock"]
 }

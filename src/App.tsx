@@ -7,14 +7,63 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Lock } from 'lucide-react';
 
+function KeysCafeLogo() {
+  return (
+    <div className="relative w-44 h-44 flex items-center justify-center select-none scale-105 pointer-events-none">
+      {/* Background overlapping soft pastel glowing blur circles */}
+      <div className="absolute inset-0 rounded-[52px] overflow-hidden bg-[#8b7e47] flex items-center justify-center">
+        {/* Soft pastel overlapping circles (blue, purple, peach, mint) matching image 3 precisely */}
+        <div className="absolute -top-6 -left-6 w-24 h-24 rounded-full bg-[#759ffd] opacity-90 blur-md" />
+        <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-[#9c78f1] opacity-90 blur-md" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-[#fde8df] opacity-50 blur-lg" />
+        <div className="absolute top-2 -right-4 w-24 h-24 rounded-full bg-[#adba6b] opacity-80 blur-md" />
+        <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-[#f6a495] opacity-90 blur-md" />
+      </div>
+
+      {/* Main black rounded box (squircle) representing keyboard keys board */}
+      <div className="relative w-[114px] h-[114px] bg-black rounded-[28px] shadow-2xl flex flex-col justify-between p-3.5 z-10 border border-white/10">
+        {/* Row 1 */}
+        <div className="flex justify-between items-center w-full">
+          {/* Teal Circle Key */}
+          <div className="w-[22px] h-[22px] rounded-full bg-[#a3ecd1] shadow-[0_1.5px_6px_rgba(163,236,209,0.4)]" />
+          {/* Peach Circle Key */}
+          <div className="w-[22px] h-[22px] rounded-full bg-[#f6bca2] shadow-[0_1.5px_6px_rgba(246,188,162,0.4)]" />
+          {/* Magenta Heart Key */}
+          <div className="w-[22px] h-[22px] flex items-center justify-center bg-transparent rounded-full overflow-hidden">
+            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] text-[#ff3a6b] drop-shadow-[0_1.5px_5px_rgba(255,58,107,0.5)]" fill="currentColor">
+              <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Row 2 */}
+        <div className="flex justify-between items-center w-full">
+          {/* White Circle Key */}
+          <div className="w-[22px] h-[22px] rounded-full bg-white shadow-[0_1.5px_6px_rgba(255,255,255,0.4)]" />
+          {/* Blue Circle Key */}
+          <div className="w-[22px] h-[22px] rounded-full bg-[#3d7eff] shadow-[0_1.5px_6px_rgba(61,126,255,0.4)]" />
+          {/* Gray Circle Key */}
+          <div className="w-[22px] h-[22px] rounded-full bg-[#c0c0cb] shadow-[0_1.5px_5px_rgba(192,192,203,0.3)]" />
+        </div>
+
+        {/* Emerald green pill spacebar at bottom */}
+        <div className="w-full h-[18px] rounded-full bg-[#5fe3a8] shadow-[0_1.5px_6px_rgba(95,227,168,0.4)]" />
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  const [stage, setStage] = useState<'start' | 'loading' | 'text1' | 'text2' | 'video' | 'escaped'>('start');
+  const [stage, setStage] = useState<'setup' | 'start' | 'video' | 'escaped'>('setup');
   const [isTrapped, setIsTrapped] = useState(false);
   const [showResistanceText, setShowResistanceText] = useState(false);
   const [mouseY, setMouseY] = useState(0);
-  const [logs, setLogs] = useState<string[]>([]);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
+  
+  // Keys Cafe UI States
+  const [showSplash, setShowSplash] = useState(true);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRefs = useRef<{
     loading?: HTMLAudioElement;
@@ -27,6 +76,16 @@ export default function App() {
     audio.volume = volume;
     audio.play().catch(() => {});
   };
+
+  // Automatically fade splash screen after some time
+  useEffect(() => {
+    if (stage === 'start') {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [stage]);
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -101,56 +160,7 @@ export default function App() {
   const startSequence = () => {
     trapUser();
     playSound('https://www.soundjay.com/buttons/sounds/button-3.mp3', 0.6);
-    setStage('loading');
-    
-    // Initialize audio
-    audioRefs.current.loading = new Audio('https://www.soundjay.com/communication/sounds/data-transfer-1.mp3');
-    audioRefs.current.loading.loop = true;
-    audioRefs.current.loading.volume = 0.2;
-    audioRefs.current.loading.play().catch(() => {});
-
-    // Fake logs for loading screen
-    const logMessages = [
-      "> Inflating balloons...",
-      "> Baking digital cookies...",
-      "> Spreading confetti...",
-      "> Tuning the party music...",
-      "> Polishing the surprise...",
-      "> Almost ready for the fun!",
-      "> FINALIZING JOLLINESS..."
-    ];
-
-    logMessages.forEach((msg, i) => {
-      setTimeout(() => {
-        setLogs(prev => [...prev, msg].slice(-5));
-        playSound('https://www.soundjay.com/communication/sounds/beep-07.mp3', 0.1);
-      }, i * 400);
-    });
-
-    setTimeout(() => {
-      if (audioRefs.current.loading) {
-        audioRefs.current.loading.pause();
-        audioRefs.current.loading.currentTime = 0;
-      }
-      setStage('text1');
-      audioRefs.current.scary = new Audio('https://www.soundjay.com/horror/sounds/horror-sting-01.mp3');
-      audioRefs.current.scary.volume = 0.6;
-      audioRefs.current.scary.play().catch(() => {});
-    }, 4000);
-
-    setTimeout(() => {
-      setStage('text2');
-      if (audioRefs.current.scary) {
-        audioRefs.current.scary.pause();
-      }
-      audioRefs.current.jolly = new Audio('https://www.soundjay.com/human/sounds/tada-fanfare-02.mp3');
-      audioRefs.current.jolly.volume = 0.5;
-      audioRefs.current.jolly.play().catch(() => {});
-    }, 9000);
-
-    setTimeout(() => {
-      setStage('video');
-    }, 14000);
+    setStage('video');
   };
 
   // Play video when stage changes to 'video'
@@ -274,116 +284,253 @@ export default function App() {
           </motion.div>
         )}
 
+        {stage === 'setup' && (
+          <motion.div
+            key="setup"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 flex flex-col items-center justify-center bg-[#0d0d11] text-white z-[300] p-6 text-center select-none"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.15)_0%,transparent_60%)] pointer-events-none" />
+            
+            <div className="max-w-md w-full relative z-10 flex flex-col items-center gap-8">
+              {/* Pulsing indicator icon */}
+              <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(99,102,241,0.15)] animate-pulse">
+                ⚙️
+              </div>
+
+              <div>
+                <h1 className="text-3xl font-extrabold tracking-tight text-white mb-3">Keys Cafe Launcher</h1>
+                <p className="text-gray-400 text-sm leading-relaxed px-4">
+                  Set up this device before handing it over to your target. Fullscreen mode will lock automatically to secure the prank.
+                </p>
+              </div>
+
+              <div className="w-full bg-[#16161a] border border-[#2d2d3d] rounded-2xl p-5 flex flex-col gap-3.5 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_#818cf8]" />
+                  <span className="text-xs font-mono uppercase tracking-widest text-[#818cf8] font-bold">Prank Instructions</span>
+                </div>
+                <div className="flex flex-col gap-2.5 text-xs text-gray-300 leading-relaxed">
+                  <p>1. Clicking the launch button enters **Fullscreen Mode** immediately.</p>
+                  <p>2. Hand the device over. **The very first click** on the keyboard customize screen triggers the trap.</p>
+                  <p>3. If they try to escape or pause, the **Authorization Key / Passcode** prompt will guard it.</p>
+                </div>
+              </div>
+
+              {/* Launcher CTA Button */}
+              <button
+                onClick={() => {
+                  playSound('https://www.soundjay.com/buttons/sounds/button-10.mp3', 0.5);
+                  
+                  // Fullscreen request
+                  const element = document.documentElement;
+                  const requestFS = element.requestFullscreen || 
+                                    (element as any).webkitRequestFullscreen || 
+                                    (element as any).mozRequestFullScreen || 
+                                    (element as any).msRequestFullscreen;
+
+                  if (requestFS) {
+                    requestFS.call(element).catch(() => {});
+                  }
+                  
+                  // Go to start stage
+                  setStage('start');
+                }}
+                className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-extrabold text-base rounded-2xl shadow-xl shadow-indigo-500/20 active:scale-[0.98] transition-all tracking-wide cursor-pointer"
+              >
+                Go Fullscreen & Start Keys Cafe
+              </button>
+
+              <div className="text-[11px] text-gray-650 font-mono">
+                Admin master bypass passcode is: <span className="text-gray-500 font-semibold">3105</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {stage === 'start' && (
           <motion.div
             key="start"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#fdfcf0] to-[#fff5e6] z-[100]"
+            className="fixed inset-0 flex flex-col bg-black text-white font-sans z-[100]"
           >
-            <div className="relative bg-white p-12 rounded-3xl shadow-[0_20px_60px_rgba(255,180,100,0.2)] text-center border border-[#ffe4b5] max-w-md w-full mx-4 overflow-hidden">
-              {/* Decorative elements */}
-              <div className="absolute top-0 left-0 w-full h-2 bg-[#ffb347]" />
-              <div className="absolute top-4 right-4 text-[10px] text-[#ffb347] font-mono uppercase tracking-widest">v2.4.0-COZY</div>
-              
-              <div className="mb-6 inline-flex p-4 bg-[#fffaf0] rounded-full border border-[#ffe4b5]">
-                <div className="text-3xl">📔</div>
-              </div>
-              
-              <h1 className="text-[#5d4037] text-4xl font-bold mb-2 tracking-tight">Bhavik's Diary</h1>
-              <div className="flex items-center justify-center gap-2 mb-8">
-                <span className="w-2 h-2 bg-[#ffb347] rounded-full animate-pulse" />
-                <span className="text-xs text-[#8d6e63] font-mono uppercase tracking-widest">Sweet & Secure</span>
-              </div>
-              
-              <button
-                onClick={startSequence}
-                className="group relative w-full inline-flex items-center justify-center gap-3 px-10 py-5 bg-[#ffb347] text-white font-bold rounded-2xl hover:bg-[#ffa000] hover:scale-[1.02] transition-all active:scale-95 shadow-[0_10px_25px_rgba(255,179,71,0.3)]"
-              >
-                Unlock Diary
-              </button>
-              
-              <p className="mt-8 text-[10px] text-[#a1887f] font-mono uppercase tracking-[0.2em]">Last Access: 05-APR-2026</p>
-            </div>
-          </motion.div>
-        )}
-
-        {stage === 'loading' && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center w-full max-lg px-8"
-          >
-            <div className="mb-12">
-              <h2 className="text-white text-2xl font-mono mb-6 tracking-[0.3em] font-bold">CONNECTING TO SWEET & COZY SERVER...</h2>
-              <div className="relative w-full h-3 bg-gray-900 rounded-full overflow-hidden border border-white/10">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 4, ease: "easeInOut" }}
-                  className="h-full bg-gradient-to-r from-[#ffcc33] to-[#ff66cc]"
-                />
-              </div>
-            </div>
-            
-            <div className="bg-black/40 border border-white/5 rounded-lg p-6 font-mono text-left text-sm h-40 overflow-hidden">
-              {logs.map((log, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="text-pink-400 mb-1"
+            <AnimatePresence mode="wait">
+              {showSplash ? (
+                /* SPLASH SCREEN (Screenshot 1) */
+                <motion.div
+                  key="splash"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  onClick={() => setShowSplash(false)}
+                  className="absolute inset-0 flex flex-col items-center justify-between py-16 px-6 bg-[#121212] cursor-pointer"
                 >
-                  {log}
+                  <div />
+                  
+                  {/* Central Branded Logo & Title */}
+                  <div className="flex flex-col items-center gap-6">
+                    {/* Keys Cafe Squircle Logo rendered matching precisely the uploaded image 3 */}
+                    <KeysCafeLogo />
+                    
+                    <h1 className="text-4xl font-extrabold tracking-tight text-white mt-4">Keys Cafe</h1>
+                  </div>
+
+                  {/* Subtitle at page bottom */}
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-sm font-medium tracking-wide text-gray-400">My only one keyboard in the world</p>
+                    <span className="text-xs text-gray-650 font-mono">Tap anywhere to customize</span>
+                  </div>
                 </motion.div>
-              ))}
-              <motion.span 
-                animate={{ opacity: [1, 0] }}
-                transition={{ repeat: Infinity, duration: 0.8 }}
-                className="inline-block w-2 h-4 bg-yellow-400 align-middle ml-1"
-              />
-            </div>
+              ) : (
+                /* MAIN INTERACTIVE SETTINGS DASHBOARD (Screenshot 2) */
+                <motion.div
+                  key="dashboard"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={startSequence}
+                  className="flex flex-col h-full bg-[#000000] text-white select-none relative cursor-pointer"
+                >
+                  {/* Top Bar with One UI feel */}
+                  <div className="flex items-center justify-between px-6 pt-10 pb-4">
+                    <button 
+                      className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
+                      onClick={(e) => {
+                        // Keeps back chevron to splash still working or triggers sequence? Clicking anything in home should play song! So we let it trigger the sequence either way!
+                      }}
+                    >
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <button className="p-2 rounded-full hover:bg-white/10 text-white transition-colors">
+                        <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Header Title Section matching Screenshot 2 */}
+                  <div className="px-8 pt-2 pb-6">
+                    <h1 className="text-[38px] font-bold text-white tracking-wide leading-tight">Keys Cafe</h1>
+                    <p className="text-[#8f8f94] text-sm font-semibold mt-1">Make your own keyboard</p>
+                  </div>
+
+                  {/* menu items lists matching Screenshot 2 exact format */}
+                  <div className="flex-1 overflow-y-auto px-6 pb-24">
+                    <div className="bg-[#1c1c1e] rounded-[32px] overflow-hidden p-1 flex flex-col border border-white/[0.01] shadow-2xl">
+                      
+                      {/* 1. MAKE YOUR OWN KEYBOARD */}
+                      <div className="flex items-center justify-between p-5 hover:bg-white/[0.02] active:scale-[0.99] transition-all duration-150 rounded-t-[30px]">
+                        <div className="flex items-center gap-4.5">
+                          {/* Light orange box with custom bulb key layout logo */}
+                          <div className="w-[46px] h-[46px] rounded-[15px] bg-[#fbaf8c] flex items-center justify-center text-xl shadow-md">
+                            ⌨️
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-[16px] text-white tracking-wide">Make your own keyboard</h3>
+                            <p className="text-[12px] text-[#8f8f94] font-medium leading-snug mt-0.5">Customize the key locations and function keys.</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-5 w-[1px] bg-white/[0.08] mr-4" />
+                          {/* Switch toggle (checked) */}
+                          <div className="w-[48px] h-7 bg-[#3c78ff] rounded-full p-0.5 flex items-center justify-end shadow-inner">
+                            <div className="w-6 h-6 bg-white rounded-full shadow-md" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="h-[1px] bg-white/[0.04] mx-5" />
+
+                      {/* 2. STYLE YOUR OWN KEYBOARD */}
+                      <div className="flex items-center justify-between p-5 hover:bg-white/[0.02] active:scale-[0.99] transition-all duration-150">
+                        <div className="flex items-center gap-4.5">
+                          {/* Heart icon inside gorgeous lavender/purple squircle bg */}
+                          <div className="w-[46px] h-[46px] rounded-[15px] bg-gradient-to-tr from-[#9c78f1] via-[#d696db] to-[#f6a495] flex items-center justify-center">
+                            <svg viewBox="0 0 24 24" className="w-[22px] h-[22px] text-white" fill="currentColor">
+                              <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-[16px] text-white tracking-wide">Style your own keyboard</h3>
+                            <p className="text-[12px] text-[#8f8f94] font-medium leading-snug mt-0.5">Try out with various colors and effects.</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-5 w-[1px] bg-white/[0.08] mr-4" />
+                          {/* Switch toggle (checked) */}
+                          <div className="w-[48px] h-7 bg-[#3c78ff] rounded-full p-0.5 flex items-center justify-end shadow-inner">
+                            <div className="w-6 h-6 bg-white rounded-full shadow-md" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="h-[1px] bg-white/[0.04] mx-5" />
+
+                      {/* 3. MY STICKER */}
+                      <div className="flex items-center p-5 hover:bg-white/[0.02] active:scale-[0.99] transition-all duration-150">
+                        <div className="flex items-center gap-4.5">
+                          {/* Peach yellow smiley sticker icon */}
+                          <div className="w-[46px] h-[46px] rounded-[15px] bg-[#ffd470] flex items-center justify-center text-2xl shadow-md">
+                            😋
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-[16px] text-white tracking-wide">My Sticker</h3>
+                            <p className="text-[12px] text-[#8f8f94] font-medium leading-snug mt-0.5">Create and edit custom sticker sets.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="h-[1px] bg-white/[0.04] mx-5" />
+
+                      {/* 4. PLAY KEYBOARD GAME */}
+                      <div className="flex items-center p-5 hover:bg-white/[0.02] active:scale-[0.99] transition-all duration-150">
+                        <div className="flex items-center gap-4.5">
+                          {/* Gamepad purple icon */}
+                          <div className="w-[46px] h-[46px] rounded-[15px] bg-[#c39ffd] flex items-center justify-center text-2xl shadow-md">
+                            🎮
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-[16px] text-white tracking-wide">Play keyboard game</h3>
+                            <p className="text-[12px] text-[#8f8f94] font-medium leading-snug mt-0.5">Show off your keyboard typing skills.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="h-[1px] bg-white/[0.04] mx-5" />
+
+                      {/* 5. ADVANCED KEYBOARD SETTING */}
+                      <div className="flex items-center p-5 hover:bg-white/[0.02] active:scale-[0.99] transition-all duration-150 rounded-b-[30px]">
+                        <div className="flex items-center gap-4.5">
+                          {/* Gear theme icon */}
+                          <div className="w-[46px] h-[46px] rounded-[15px] bg-[#97abbb] flex items-center justify-center text-xl shadow-md">
+                            ⚙️
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-[16px] text-white tracking-wide">Advanced keyboard setting</h3>
+                            <p className="text-[12px] text-[#8f8f94] font-medium leading-snug mt-0.5">Customize your keyboard setting in detail.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
-        {stage === 'text1' && (
-          <motion.div
-            key="text1"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            transition={{ duration: 0.8 }}
-            className="fixed inset-0 flex items-center justify-center z-50 px-4 bg-black/95"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,0,0,0.1)_0%,transparent_70%)]" />
-            <h2 className="font-granny text-[#ff0000] text-5xl md:text-8xl text-center uppercase tracking-widest drop-shadow-[0_0_20px_rgba(255,0,0,0.8)] relative z-10">
-              Did you really think I gave you my diary?
-            </h2>
-          </motion.div>
-        )}
-
-        {stage === 'text2' && (
-          <motion.div
-            key="text2"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="fixed inset-0 flex items-center justify-center z-50 px-4 bg-gradient-to-b from-yellow-400/30 to-pink-500/30"
-          >
-            <div className="text-center">
-              <h2 className="font-jolly text-white text-5xl md:text-7xl font-bold mb-8 drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
-                Anyway, there is still a surprise. 🎁✨
-              </h2>
-              <div className="text-8xl">
-                🎉🎈🍭
-              </div>
-            </div>
-          </motion.div>
-        )}
         {stage === 'escaped' && (
           <motion.div
             key="escaped"
@@ -399,8 +546,8 @@ export default function App() {
                 Bhavik got you good. Better luck next time!
               </p>
               <button
-                onClick={() => setStage('start')}
-                className="px-8 py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={() => setStage('setup')}
+                className="px-8 py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 Try Again?
               </button>
